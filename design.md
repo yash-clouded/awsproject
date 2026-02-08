@@ -126,41 +126,39 @@ Return Recommendations
 
 **Components:**
 - AWS Lambda: Orchestration and backend logic
-- Playwright/Puppeteer: Headless browser automation
+- API Setu: Direct government API integration for claim submission
 - Amazon Textract: Document processing
 - Amazon SES/SNS: Notifications
+- Browser Extension (Optional): User-assisted form filling guidance
 
-**Portal Navigation Flow:**
+**Portal Navigation Flow (API-First Approach):**
 ```
 Scheme Selected
     ↓
-Generate Deep Link to Portal
-    ↓
-Launch Headless Browser
-    ↓
-Navigate to Application Page
-    ↓
-Extract Form Fields
-    ↓
-Map User Data to Form Fields
-    ↓
-Auto-fill Forms
-    ↓
-Handle OTP/Verification
-    ↓
-Submit Application
-    ↓
-Capture Confirmation
-    ↓
-Send Notification to User
+Check if API available (API Setu)
+    ├─ YES: Use API for direct submission
+    │   ├─ Prepare data payload
+    │   ├─ Call government API
+    │   ├─ Handle response
+    │   └─ Send confirmation
+    │
+    └─ NO: Provide guided manual submission
+        ├─ Generate deep link to portal
+        ├─ Create step-by-step guide
+        ├─ Export pre-filled PDF/data sheet
+        ├─ Provide form field mapping
+        ├─ User fills form manually
+        ├─ User submits on portal
+        └─ User shares confirmation with system
 ```
 
 **Key Capabilities:**
-- Intelligent form field detection
-- Handling of dynamic forms and JavaScript-heavy portals
-- OTP interception and auto-fill
-- Screenshot capture for audit trail
-- Error recovery and retry logic
+- API integration with government systems (API Setu, state portals)
+- Intelligent form field mapping and data preparation
+- Pre-filled PDF generation for offline submission
+- Step-by-step guidance UI for manual form filling
+- Confirmation capture and tracking
+- Error recovery and retry logic (for API calls only)
 
 ### 5. Data & Integration Layer
 
@@ -216,22 +214,26 @@ Status Tracking & Notifications
 7. User confirms intent to apply
 ```
 
-### Workflow 3: Automated Claim Submission
+### Workflow 3: Guided Claim Submission (API-First)
 
 ```
 1. Lambda receives submission request
-2. Fetch scheme portal URL and form structure
-3. Launch headless browser
-4. Navigate to application page
-5. Extract form fields
-6. Map user data to fields
-7. Auto-fill forms with validation
-8. Handle authentication (OTP, etc.)
-9. Submit application
-10. Capture confirmation details
-11. Store claim record in DynamoDB
-12. Send confirmation to user via SMS/Email
-13. Schedule status tracking
+2. Check if scheme has API Setu support
+3. If API available:
+   a. Prepare data payload
+   b. Call government API with user consent
+   c. Handle API response
+   d. Store claim record in DynamoDB
+   e. Send confirmation to user
+4. If API not available:
+   a. Generate deep link to portal
+   b. Create step-by-step form-filling guide
+   c. Export pre-filled PDF with user data
+   d. Send guide + PDF to user
+   e. User manually fills and submits on portal
+   f. User shares confirmation (screenshot/reference number)
+   g. System stores claim record
+   h. Send confirmation to user
 ```
 
 ### Workflow 4: Claim Status Tracking
@@ -374,7 +376,7 @@ Response:
 │    Lambda Functions (Microservices)     │
 │  - Voice Processing                     │
 │  - Eligibility Engine                   │
-│  - Portal Automation                    │
+│  - API Setu Integration                 │
 │  - Notification Service                 │
 └────────────────┬────────────────────────┘
                  │
@@ -385,18 +387,70 @@ Response:
 └────────┘  └───────┘  └─────────┘
 ```
 
+## Legal & Technical Risk Mitigation
+
+### Why We Don't Automate Portal Form-Filling
+
+**Technical Risks:**
+- Government portals use CAPTCHAs, rate limiting, and bot detection
+- Portal HTML structures change frequently, breaking automation
+- Maintenance burden grows exponentially with each new portal
+- Session management and authentication are complex and fragile
+
+**Legal Risks:**
+- Terms of Service violations on government websites
+- Potential violation of Computer Fraud and Abuse Act (CFAA) equivalent in India
+- Liability if automated submissions cause data corruption or duplicate claims
+- Regulatory scrutiny from government agencies
+
+**Business Risks:**
+- Portal operators can block automation at any time
+- Reputational damage if automation causes claim rejections
+- Compliance violations could result in service shutdown
+
+### Our Solution: API-First + Guided Manual
+
+**Phase 1: API Setu Integration (Recommended)**
+- Work with government through official channels
+- Use API Setu for direct claim submission where available
+- Eliminates all automation risks
+- Scalable and maintainable
+
+**Phase 2: Guided Manual Submission (Fallback)**
+- Provide step-by-step instructions to users
+- Pre-fill PDFs with user data for offline submission
+- Generate deep links to specific portal pages
+- User retains control and responsibility
+- No Terms of Service violations
+- Minimal maintenance burden
+
+**Phase 3: Browser Extension (Optional, Future)**
+- User-controlled form filling assistance
+- User explicitly triggers each action
+- No automated submission
+- Compliant with portal policies
+
+### Compliance Strategy
+- Explicit user consent for all data sharing
+- Clear disclosure of what system can and cannot do
+- Audit trail of all submissions
+- Regular legal review of API usage
+- Transparent communication with government partners
+
 ## Error Handling & Resilience
 
 ### Failure Scenarios
-1. **Portal Unavailability**: Retry with exponential backoff, notify user
-2. **Form Structure Changes**: Alert admin, fallback to manual submission
-3. **API Setu Timeout**: Use cached data, retry asynchronously
+1. **API Unavailability**: Fall back to guided manual submission with pre-filled data
+2. **Portal Changes**: Minimal impact since we don't scrape or automate portals
+3. **API Setu Timeout**: Retry with exponential backoff, notify user to submit manually
 4. **Network Interruption**: Queue request, retry when connection restored
+5. **User Submission Failure**: Provide troubleshooting guide and alternative submission methods
 
 ### Recovery Mechanisms
-- **Dead Letter Queues**: Capture failed submissions for manual review
-- **Circuit Breaker Pattern**: Prevent cascading failures
-- **Graceful Degradation**: Provide alternative paths when services fail
+- **Dead Letter Queues**: Capture failed API submissions for manual review
+- **Circuit Breaker Pattern**: Prevent cascading failures in API calls
+- **Graceful Degradation**: Always provide manual submission as fallback
+- **User Support Queue**: Route complex cases to human support
 
 ## Monitoring & Observability
 

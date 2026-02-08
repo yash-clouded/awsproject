@@ -14,8 +14,9 @@ Rural users struggle to access government benefits due to:
 ## Solution Overview
 The Claim Engine provides an end-to-end empowerment solution that:
 1. Identifies user eligibility through conversational AI
-2. Automates the "Claim Path" by deep-linking or automating form-filling on government portals
-3. Eliminates the need for users to navigate complex HTML interfaces
+2. Guides users through the "Claim Path" with step-by-step instructions and pre-filled data
+3. Reduces friction by preparing all required information upfront and providing direct links to application pages
+4. Works *with* government systems (via APIs) rather than automating against them
 
 ## Functional Requirements
 
@@ -37,11 +38,13 @@ The Claim Engine provides an end-to-end empowerment solution that:
 - **Ranking & Prioritization**: Rank schemes by relevance and benefit amount
 - **Detailed Scheme Information**: Provide scheme details, eligibility criteria, and application requirements
 
-### 4. Automated Portal Navigation
+### 4. Guided Portal Navigation & Data Preparation
 - **Deep Linking**: Generate direct links to specific scheme login/registration pages
-- **Browser Automation**: Use headless browsers (Playwright/Puppeteer) to automate form-filling
-- **Portal Interaction**: Navigate government portals without user intervention
-- **Form Pre-filling**: Auto-populate application fields with extracted user data
+- **Smart Form Mapping**: Analyze portal forms and map user data to required fields
+- **Step-by-Step Guidance**: Provide users with clear instructions on what to enter where
+- **Data Export**: Generate pre-filled PDF forms or data sheets that users can upload
+- **Portal Integration (Official)**: Work with government APIs (API Setu) for direct submission where available
+- **User-Assisted Automation**: Browser extension or guided UI that helps users fill forms faster (not automated submission)
 
 ### 5. Document & Data Integration
 - **API Setu Integration**: Connect to API Setu (Digital India) to fetch verified user documents automatically
@@ -50,9 +53,10 @@ The Claim Engine provides an end-to-end empowerment solution that:
 - **Secure Data Handling**: Encrypt and securely store user information
 
 ### 6. Claim Submission & Tracking
-- **Automated Submission**: Submit claims on behalf of users to government portals
+- **API-Based Submission**: Submit claims directly via government APIs (API Setu) where available
+- **Guided Manual Submission**: For portals without APIs, provide step-by-step guidance with pre-filled data
 - **Confirmation Handling**: Capture and process confirmation emails/OTPs
-- **Status Tracking**: Provide real-time claim status updates
+- **Status Tracking**: Provide real-time claim status updates via API polling or webhooks
 - **Notification System**: Send SMS/Email notifications via Amazon SNS
 
 ## Non-Functional Requirements
@@ -107,9 +111,10 @@ The Claim Engine provides an end-to-end empowerment solution that:
 
 ### Execution Layer
 - AWS Lambda for orchestration
-- Playwright/Puppeteer for browser automation
+- API Setu integration for direct government submissions
 - Amazon SES for email notifications
 - Amazon SNS for SMS notifications
+- Optional: Browser extension for user-assisted form filling (not automated)
 
 ## Success Metrics
 - User adoption rate among rural population
@@ -120,11 +125,14 @@ The Claim Engine provides an end-to-end empowerment solution that:
 - Language coverage and accuracy
 
 ## Constraints & Assumptions
-- Government portal APIs may have limited availability
-- Portal structures may change requiring maintenance
+- **Legal Constraint**: No automated form submission on government portals without explicit API support or legal authorization
+- **Technical Constraint**: Government sites use CAPTCHAs and rate limiting—design prioritizes API-first approach
+- Government portal APIs may have limited availability—fallback to guided manual submission
+- Portal structures may change—minimize maintenance burden by using official APIs
 - User internet connectivity may be intermittent
-- Compliance with government data sharing policies required
-- Initial focus on specific government schemes (DBT, agricultural subsidies)
+- Compliance with government data sharing policies and Terms of Service required
+- Initial focus on schemes with API Setu support or official integration channels
+- User consent required for all data sharing with government systems
 
 ## Timeline & Milestones
 - Phase 1: Core voice interface and eligibility matching (MVP)
