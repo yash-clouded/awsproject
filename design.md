@@ -126,39 +126,62 @@ Return Recommendations
 
 **Components:**
 - AWS Lambda: Orchestration and backend logic
+- Headless Browser (Playwright/Puppeteer): Read-only form structure analysis
+- Amazon Bedrock (LLM): Intelligent data extraction from documents
 - API Setu: Direct government API integration for claim submission
 - Amazon Textract: Document processing
 - Amazon SES/SNS: Notifications
-- Browser Extension (Optional): User-assisted form filling guidance
+- PDF Generation Service: Pre-filled form generation
 
-**Portal Navigation Flow (API-First Approach):**
+**Portal Navigation Flow (Hybrid Approach):**
 ```
 Scheme Selected
     ↓
-Check if API available (API Setu)
-    ├─ YES: Use API for direct submission
-    │   ├─ Prepare data payload
-    │   ├─ Call government API
-    │   ├─ Handle response
-    │   └─ Send confirmation
-    │
-    └─ NO: Provide guided manual submission
-        ├─ Generate deep link to portal
-        ├─ Create step-by-step guide
-        ├─ Export pre-filled PDF/data sheet
-        ├─ Provide form field mapping
-        ├─ User fills form manually
-        ├─ User submits on portal
-        └─ User shares confirmation with system
+Step 1: Analyze Portal Form Structure
+    ├─ Use headless browser to scrape form fields (read-only)
+    ├─ Identify required fields, field types, validation rules
+    ├─ Extract form structure without submitting anything
+    └─ Store form schema in cache
+    ↓
+Step 2: Extract User Data from Documents
+    ├─ User uploads documents (Aadhaar, Ration Card, etc.)
+    ├─ Use Amazon Textract for OCR
+    ├─ Use Amazon Bedrock LLM to intelligently extract relevant data
+    ├─ Map extracted data to form fields
+    └─ Validate extracted data
+    ↓
+Step 3: Check Submission Method
+    ├─ API Available? → Use API Setu for direct submission
+    └─ No API? → Continue to Step 4
+    ↓
+Step 4: Generate Pre-filled Submission Package
+    ├─ Create pre-filled PDF with user data
+    ├─ Generate form preview showing how data appears on portal
+    ├─ Create copy-paste assistance guide (field-by-field values)
+    ├─ Provide deep link to portal
+    └─ Send package to user
+    ↓
+Step 5: User Submission
+    ├─ User logs into portal
+    ├─ User fills form using pre-filled PDF or copy-paste guide
+    ├─ User submits on portal (user retains full control)
+    └─ User shares confirmation with system
+    ↓
+Step 6: Confirmation & Tracking
+    ├─ System captures confirmation details
+    ├─ Store claim record in DynamoDB
+    └─ Send confirmation to user
 ```
 
 **Key Capabilities:**
-- API integration with government systems (API Setu, state portals)
-- Intelligent form field mapping and data preparation
+- Read-only form structure analysis (no submission, no ToS violation)
+- Intelligent LLM-based data extraction from documents
 - Pre-filled PDF generation for offline submission
-- Step-by-step guidance UI for manual form filling
-- Confirmation capture and tracking
-- Error recovery and retry logic (for API calls only)
+- Form preview showing exact portal appearance
+- Copy-paste assistance for manual field entry
+- API integration with government systems (API Setu)
+- User retains full control over submission
+- Minimal maintenance burden (form structure cached, not hardcoded)
 
 ### 5. Data & Integration Layer
 
@@ -214,26 +237,36 @@ Status Tracking & Notifications
 7. User confirms intent to apply
 ```
 
-### Workflow 3: Guided Claim Submission (API-First)
+### Workflow 3: Guided Claim Submission (Hybrid Approach)
 
 ```
 1. Lambda receives submission request
-2. Check if scheme has API Setu support
-3. If API available:
-   a. Prepare data payload
-   b. Call government API with user consent
-   c. Handle API response
-   d. Store claim record in DynamoDB
-   e. Send confirmation to user
-4. If API not available:
-   a. Generate deep link to portal
-   b. Create step-by-step form-filling guide
-   c. Export pre-filled PDF with user data
-   d. Send guide + PDF to user
-   e. User manually fills and submits on portal
-   f. User shares confirmation (screenshot/reference number)
-   g. System stores claim record
-   h. Send confirmation to user
+2. Step 1: Analyze Portal Form Structure
+   a. Use headless browser to scrape form fields (read-only)
+   b. Identify required fields and validation rules
+   c. Cache form schema
+3. Step 2: Extract User Data
+   a. User uploads documents (Aadhaar, Ration Card, etc.)
+   b. Use Textract for OCR
+   c. Use Bedrock LLM to intelligently extract relevant data
+   d. Map data to form fields
+4. Step 3: Check Submission Method
+   a. If API available: Call API Setu with user consent
+   b. If no API: Continue to Step 4
+5. Step 4: Generate Pre-filled Package
+   a. Create pre-filled PDF with user data
+   b. Generate form preview
+   c. Create copy-paste assistance guide
+   d. Send to user with deep link
+6. Step 5: User Submission
+   a. User logs into portal
+   b. User fills form using pre-filled PDF or copy-paste guide
+   c. User submits on portal
+   d. User shares confirmation with system
+7. Step 6: Confirmation & Tracking
+   a. System captures confirmation details
+   b. Store claim record in DynamoDB
+   c. Send confirmation to user
 ```
 
 ### Workflow 4: Claim Status Tracking
@@ -389,46 +422,53 @@ Response:
 
 ## Legal & Technical Risk Mitigation
 
-### Why We Don't Automate Portal Form-Filling
+### Why We Use a Hybrid Approach (Not Full Automation)
 
-**Technical Risks:**
+**Technical Risks of Full Automation:**
 - Government portals use CAPTCHAs, rate limiting, and bot detection
 - Portal HTML structures change frequently, breaking automation
 - Maintenance burden grows exponentially with each new portal
 - Session management and authentication are complex and fragile
 
-**Legal Risks:**
+**Legal Risks of Full Automation:**
 - Terms of Service violations on government websites
 - Potential violation of Computer Fraud and Abuse Act (CFAA) equivalent in India
 - Liability if automated submissions cause data corruption or duplicate claims
 - Regulatory scrutiny from government agencies
 
-**Business Risks:**
+**Business Risks of Full Automation:**
 - Portal operators can block automation at any time
 - Reputational damage if automation causes claim rejections
 - Compliance violations could result in service shutdown
 
-### Our Solution: API-First + Guided Manual
+### Our Hybrid Solution: Read-Only Analysis + LLM Extraction + User Control
 
-**Phase 1: API Setu Integration (Recommended)**
-- Work with government through official channels
-- Use API Setu for direct claim submission where available
-- Eliminates all automation risks
-- Scalable and maintainable
+**Why This Works:**
 
-**Phase 2: Guided Manual Submission (Fallback)**
-- Provide step-by-step instructions to users
-- Pre-fill PDFs with user data for offline submission
-- Generate deep links to specific portal pages
-- User retains control and responsibility
-- No Terms of Service violations
-- Minimal maintenance burden
+1. **Read-Only Form Structure Analysis**
+   - Use headless browser only to READ form structure (what fields exist)
+   - Never submit anything
+   - No Terms of Service violation (similar to browser inspection tools)
+   - Form structure cached, not hardcoded—minimal maintenance
+   - Compliant with portal policies
 
-**Phase 3: Browser Extension (Optional, Future)**
-- User-controlled form filling assistance
-- User explicitly triggers each action
-- No automated submission
-- Compliant with portal policies
+2. **Intelligent LLM-Based Data Extraction**
+   - Use Amazon Bedrock to extract relevant data from user documents
+   - No manual data entry required from users
+   - Accurate field mapping based on form structure
+   - Reduces user friction significantly
+
+3. **Pre-filled PDF + Copy-Paste Assistance**
+   - Generate downloadable PDF with all data pre-filled
+   - Provide copy-paste ready values for each form field
+   - User sees exactly how data will appear on portal
+   - User retains full control over submission
+
+4. **API Setu Integration (When Available)**
+   - Direct government API submission where available
+   - Eliminates all portal interaction risks
+   - Government-approved approach
+   - Scalable and maintainable
 
 ### Compliance Strategy
 - Explicit user consent for all data sharing
@@ -436,6 +476,7 @@ Response:
 - Audit trail of all submissions
 - Regular legal review of API usage
 - Transparent communication with government partners
+- Read-only browser access compliant with portal policies
 
 ## Error Handling & Resilience
 

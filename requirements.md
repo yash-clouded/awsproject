@@ -40,11 +40,14 @@ The Claim Engine provides an end-to-end empowerment solution that:
 
 ### 4. Guided Portal Navigation & Data Preparation
 - **Deep Linking**: Generate direct links to specific scheme login/registration pages
-- **Smart Form Mapping**: Analyze portal forms and map user data to required fields
-- **Step-by-Step Guidance**: Provide users with clear instructions on what to enter where
-- **Data Export**: Generate pre-filled PDF forms or data sheets that users can upload
+- **Smart Form Structure Analysis**: Use headless browser to scrape form structure and identify required fields (read-only, no submission)
+- **Intelligent Data Extraction**: Use LLM to extract relevant data from user's uploaded documents (Aadhaar, Ration Card, etc.)
+- **Form Field Mapping**: Intelligently map extracted user data to portal form fields
+- **Pre-filled PDF Generation**: Generate downloadable PDFs with user data pre-filled for offline submission
+- **Smart Form Preview**: Display form preview showing how data will appear on actual portal
+- **Copy-Paste Assistance**: Provide field-by-field guidance with copy-paste ready values for manual entry
 - **Portal Integration (Official)**: Work with government APIs (API Setu) for direct submission where available
-- **User-Assisted Automation**: Browser extension or guided UI that helps users fill forms faster (not automated submission)
+- **User-Controlled Submission**: User retains full control—system guides but never submits without explicit user action
 
 ### 5. Document & Data Integration
 - **API Setu Integration**: Connect to API Setu (Digital India) to fetch verified user documents automatically
@@ -111,10 +114,12 @@ The Claim Engine provides an end-to-end empowerment solution that:
 
 ### Execution Layer
 - AWS Lambda for orchestration
+- Headless Browser (Playwright/Puppeteer): Read-only form structure analysis (no submission)
+- Amazon Bedrock (LLM): Intelligent data extraction from documents
 - API Setu integration for direct government submissions
 - Amazon SES for email notifications
 - Amazon SNS for SMS notifications
-- Optional: Browser extension for user-assisted form filling (not automated)
+- PDF generation service for pre-filled forms
 
 ## Success Metrics
 - User adoption rate among rural population
