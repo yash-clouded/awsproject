@@ -2,25 +2,25 @@
 
 ## Architecture Overview
 
-The Claim Engine follows a layered architecture with clear separation of concerns:
+The Claim Engine follows a layered architecture with three core execution layers aligned with the hackathon requirements:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                    USER INTERFACE LAYER                      │
-│              (Voice + Web/Mobile Frontend)                   │
+│         (Voice + Web/Mobile Frontend - Multilingual)         │
 └────────────────────┬────────────────────────────────────────┘
                      │
 ┌────────────────────▼────────────────────────────────────────┐
-│                  ORCHESTRATION LAYER                         │
+│              ORCHESTRATION LAYER                             │
 │         (AWS Lambda - Request Routing & State Mgmt)          │
 └────────────────────┬────────────────────────────────────────┘
                      │
         ┌────────────┼────────────┬──────────────┐
         │            │            │              │
 ┌───────▼──┐  ┌──────▼──┐  ┌─────▼──┐  ┌──────▼──┐
-│ SPEECH & │  │REASONING│  │MATCHING│  │EXECUTION│
-│ LANGUAGE │  │  LAYER  │  │ LAYER  │  │ LAYER   │
-│  LAYER   │  │         │  │        │  │         │
+│ SPEECH & │  │AI       │  │MATCHING│  │EXECUTION│
+│ LANGUAGE │  │REASONING│  │ LAYER  │  │ LAYER   │
+│  LAYER   │  │ LAYER   │  │        │  │         │
 └──────────┘  └─────────┘  └────────┘  └─────────┘
      │            │            │            │
      │            │            │            │
@@ -30,37 +30,44 @@ The Claim Engine follows a layered architecture with clear separation of concern
 └──────────────────────────────────────────────────┘
 ```
 
-## Detailed Component Design
+## Three Core Execution Layers (Hackathon Focus)
 
-### 1. Speech & Language Layer
+## Three Core Execution Layers (Hackathon Focus)
+
+### 1. Speech & Language Layer (Human-to-Machine Translation)
+
+**Purpose**: Enable voice-first interaction in native languages
 
 **Components:**
-- Amazon Transcribe: Converts voice input to text
-- Amazon Bedrock (LLM): Processes natural language
-- AWS Polly: Converts responses back to speech
+- Amazon Transcribe: Converts voice input to text (multilingual, automatic language detection)
+- Amazon Bedrock (LLM): Processes natural language and extracts intent
+- AWS Polly: Converts responses back to speech with natural tone and regional accents
+
+**Capabilities:**
+- Real-time multilingual voice processing
+- Automatic language detection and switching
+- Natural speech synthesis with SSML support for tone/pitch/accent control
+- Support for Indian languages (Hindi, Tamil, Telugu, Kannada, Marathi, etc.)
+- Fallback to text interface for low-bandwidth scenarios
 
 **Flow:**
 ```
-User Voice Input
+User Voice Input (Native Language)
     ↓
-Amazon Transcribe (Multilingual)
+Amazon Transcribe (Auto Language Detection)
     ↓
-Language Detection & NLU
+Amazon Bedrock LLM (Intent & Entity Extraction)
     ↓
-Intent Extraction (Profile, Query, Confirmation)
+Process Request
     ↓
-AWS Polly (Text-to-Speech)
+AWS Polly (Text-to-Speech in Native Language)
     ↓
 User Audio Response
 ```
 
-**Key Features:**
-- Real-time transcription with automatic language detection
-- Support for Indian languages (Hindi, Tamil, Telugu, Kannada, etc.)
-- Natural speech synthesis with regional accents
-- Fallback to text interface for low-bandwidth scenarios
+### 2. AI Reasoning Layer (The Brain)
 
-### 2. Reasoning Layer (The Brain)
+**Purpose**: Evaluate eligibility and match users with appropriate schemes
 
 **Components:**
 - Amazon Bedrock with Claude/Llama foundation models
@@ -69,11 +76,12 @@ User Audio Response
 
 **Responsibilities:**
 - Extract structured data from conversational input
-- Evaluate eligibility against scheme criteria
-- Handle complex logic and edge cases
+- Evaluate eligibility against scheme criteria using complex logic
+- Handle "fuzzy" logic for nuanced eligibility decisions
+- Provide explanations for eligibility results
 - Maintain conversation context across sessions
 
-**Example Logic Flow:**
+**Example Logic:**
 ```
 User Input: "I am a farmer with 2 acres of land in Maharashtra"
     ↓
@@ -89,66 +97,45 @@ Query Eligibility Rules:
     ↓
 Rank by Benefit Amount & Relevance
     ↓
-Return Recommendations
+Return Recommendations with Explanations
 ```
 
-### 3. Matching Layer (The Knowledge Base)
+### 3. Automation & Execution Layer (The Muscle)
 
-**Components:**
-- Amazon Kendra: Intelligent search over scheme database
-- DynamoDB: Scheme metadata and eligibility criteria
-- API Setu: Government scheme information
-
-**Data Structure:**
-```json
-{
-  "scheme_id": "PM-KISAN-001",
-  "name": "Pradhan Mantri Kisan Samman Nidhi",
-  "eligibility_criteria": {
-    "occupation": ["farmer"],
-    "land_size_max": 2,
-    "income_max": 500000,
-    "states": ["all"]
-  },
-  "benefit_amount": 6000,
-  "application_url": "https://pmkisan.gov.in",
-  "documents_required": ["aadhaar", "land_records"],
-  "processing_time": "30-45 days"
-}
-```
-
-**Search Capabilities:**
-- Semantic search across scheme descriptions
-- Faceted search by state, occupation, benefit type
-- Ranking by relevance and benefit amount
-
-### 4. Execution Layer (The Muscle)
+**Purpose**: Automate form-filling and claim submission with pre-fill guidance
 
 **Components:**
 - AWS Lambda: Orchestration and backend logic
 - Headless Browser (Playwright/Puppeteer): Read-only form structure analysis
 - Amazon Bedrock (LLM): Intelligent data extraction from documents
-- API Setu: Direct government API integration for claim submission
-- Amazon Textract: Document processing
-- Amazon SES/SNS: Notifications
-- PDF Generation Service: Pre-filled form generation
+- API Setu: Direct government API integration
+- Amazon Textract: Document OCR and processing
+- Amazon SES/SNS: Notifications and confirmations
 
-**Portal Navigation Flow (Hybrid Approach):**
+**Capabilities:**
+- Read-only form structure analysis (no submission, compliant)
+- Intelligent LLM-based data extraction from documents
+- Pre-filled PDF generation for offline submission
+- Form preview showing exact portal appearance
+- Copy-paste assistance for manual field entry
+- API integration with government systems
+- Secure claim submission and status tracking
+- OTP handling and user verification
+
+**Flow:**
 ```
 Scheme Selected
     ↓
 Step 1: Analyze Portal Form Structure
     ├─ Use headless browser to scrape form fields (read-only)
-    ├─ Identify required fields, field types, validation rules
-    ├─ Extract form structure without submitting anything
-    └─ Store form schema in cache
+    ├─ Identify required fields and validation rules
+    └─ Cache form schema
     ↓
 Step 2: Extract User Data from Documents
     ├─ User uploads documents (Aadhaar, Ration Card, etc.)
     ├─ Use Amazon Textract for OCR
     ├─ Use Amazon Bedrock LLM to intelligently extract relevant data
-    ├─ Map extracted data to form fields
-    └─ Validate extracted data
+    └─ Map data to form fields
     ↓
 Step 3: Check Submission Method
     ├─ API Available? → Use API Setu for direct submission
@@ -156,15 +143,14 @@ Step 3: Check Submission Method
     ↓
 Step 4: Generate Pre-filled Submission Package
     ├─ Create pre-filled PDF with user data
-    ├─ Generate form preview showing how data appears on portal
-    ├─ Create copy-paste assistance guide (field-by-field values)
-    ├─ Provide deep link to portal
-    └─ Send package to user
+    ├─ Generate form preview
+    ├─ Create copy-paste assistance guide
+    └─ Send to user with deep link
     ↓
 Step 5: User Submission
     ├─ User logs into portal
     ├─ User fills form using pre-filled PDF or copy-paste guide
-    ├─ User submits on portal (user retains full control)
+    ├─ User submits on portal
     └─ User shares confirmation with system
     ↓
 Step 6: Confirmation & Tracking
@@ -172,16 +158,6 @@ Step 6: Confirmation & Tracking
     ├─ Store claim record in DynamoDB
     └─ Send confirmation to user
 ```
-
-**Key Capabilities:**
-- Read-only form structure analysis (no submission, no ToS violation)
-- Intelligent LLM-based data extraction from documents
-- Pre-filled PDF generation for offline submission
-- Form preview showing exact portal appearance
-- Copy-paste assistance for manual field entry
-- API integration with government systems (API Setu)
-- User retains full control over submission
-- Minimal maintenance burden (form structure cached, not hardcoded)
 
 ### 5. Data & Integration Layer
 
@@ -191,13 +167,13 @@ Step 6: Confirmation & Tracking
 - **RDS**: Scheme database (optional, for complex queries)
 
 **External Integrations:**
-- **API Setu**: Fetch verified Aadhaar, PAN, bank details
+- **API Setu**: Fetch verified Aadhaar, PAN, bank details automatically
 - **Government Portals**: DBT, State benefit portals
-- **Email/SMS**: Amazon SES, SNS for notifications
+- **Email/SMS**: Amazon SES, SNS for notifications and confirmations
 
 **Data Flow:**
 ```
-User Data Collection
+User Data Collection (Voice/Upload)
     ↓
 Encryption & Storage (DynamoDB)
     ↓
@@ -205,7 +181,7 @@ API Setu Integration (Fetch Verified Data)
     ↓
 Eligibility Matching
     ↓
-Portal Submission
+Portal Submission (API or Guided)
     ↓
 Status Tracking & Notifications
 ```
@@ -217,21 +193,21 @@ Status Tracking & Notifications
 ```
 1. User initiates voice call/app
 2. System greets in detected language
-3. User describes profile conversationally
+3. User describes profile conversationally (e.g., "I am a farmer with 2 acres")
 4. System extracts and confirms details
 5. Optional: User uploads documents (Aadhaar, Ration Card)
-6. System processes documents via Textract
-7. Profile stored in DynamoDB
+6. System processes documents via Textract + Bedrock LLM
+7. Profile stored in DynamoDB with encryption
 8. Ready for eligibility matching
 ```
 
-### Workflow 2: Eligibility Assessment & Scheme Discovery
+### Workflow 2: Eligibility Assessment & Scheme Discovery (Days → Minutes)
 
 ```
 1. System queries Kendra with user profile
-2. Bedrock evaluates eligibility rules
-3. Schemes ranked by relevance
-4. System presents top 5 schemes to user
+2. Bedrock evaluates eligibility rules against scheme criteria
+3. Schemes ranked by relevance and benefit amount
+4. System presents top 5 schemes to user in native language
 5. User selects scheme of interest
 6. System provides detailed scheme information
 7. User confirms intent to apply
@@ -266,7 +242,7 @@ Status Tracking & Notifications
 7. Step 6: Confirmation & Tracking
    a. System captures confirmation details
    b. Store claim record in DynamoDB
-   c. Send confirmation to user
+   c. Send confirmation to user via SMS/Email
 ```
 
 ### Workflow 4: Claim Status Tracking
@@ -275,7 +251,7 @@ Status Tracking & Notifications
 1. System periodically checks claim status
 2. Query government portal or API
 3. Update claim status in DynamoDB
-4. If status changed, notify user
+4. If status changed, notify user in native language
 5. Provide next steps if action needed
 6. Archive completed claims
 ```
@@ -512,3 +488,39 @@ Response:
 - Latency spikes (> 10s)
 - Failed claim submissions
 - API quota exhaustion
+
+## Hackathon MVP Scope
+
+For the hackathon demo, the system will support **1-2 government schemes** with live claim navigation:
+
+**MVP Features:**
+- Voice-based user profile collection in 2-3 Indian languages
+- Eligibility assessment using Bedrock LLM
+- Scheme discovery and ranking
+- Form structure analysis for selected scheme
+- Pre-filled PDF generation with user data
+- Copy-paste assistance guide
+- Live portal navigation demonstration
+- Claim confirmation and tracking
+
+**Out of Scope for MVP:**
+- Full multi-language support (focus on 2-3 languages)
+- Automated API Setu integration (manual API calls demonstrated)
+- Production-grade security (demo-level encryption)
+- Nationwide scheme database (focus on 1-2 schemes)
+
+## Cost & Scalability
+
+**Development Costs:**
+- Minimal, leveraged through AWS Credits
+- Ideal for hackathon prototyping and initial deployment
+
+**Operational Costs:**
+- Scalable pay-as-you-go model with AWS Serverless technologies
+- Drastically reduces financial burden for government adoption
+- Cost per claim submission: Minimal (Lambda + API calls only)
+
+**Long-Term Viability:**
+- Designed for low ongoing costs
+- Sustainable solution for wide-scale rural inclusion
+- Government-friendly pricing model

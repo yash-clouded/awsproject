@@ -1,22 +1,23 @@
 # The Claim Engine - Requirements Document
 
 ## Project Overview
-The Claim Engine is a voice-activated, multilingual AI assistant that simplifies the discovery and claiming of government benefits for rural users. It bridges the gap between complex government portals and end-users by automating eligibility assessment and claim submission.
+The Claim Engine is India's first AI-powered claim assistant—a voice-activated, multilingual AI assistant that simplifies the discovery and claiming of government benefits for rural users. It bridges the gap between complex government portals and end-users by automating eligibility assessment and guiding users through the claim submission process.
 
 ## Problem Statement
-Rural users struggle to access government benefits due to:
+Millions of eligible citizens miss government benefits due to:
 - Complex application portals (DBT, State portals) with unintuitive interfaces
 - Language barriers in non-English speaking regions
-- Lack of awareness about available schemes and subsidies
+- Documentation confusion and lack of awareness about available schemes
+- Low digital literacy among rural populations
 - High dropout rates during the application process
-- Manual form-filling requirements that require technical literacy
 
 ## Solution Overview
 The Claim Engine provides an end-to-end empowerment solution that:
-1. Identifies user eligibility through conversational AI
-2. Guides users through the "Claim Path" with step-by-step instructions and pre-filled data
-3. Reduces friction by preparing all required information upfront and providing direct links to application pages
-4. Works *with* government systems (via APIs) rather than automating against them
+1. **Scheme Discovery**: Reduces discovery time from days to minutes through voice-based eligibility assessment
+2. **Intelligent Matching**: Identifies applicable government schemes based on user profile
+3. **Guided Claim Path**: Guides users through the entire claim submission process with pre-filled data and step-by-step instructions
+4. **Works With Government**: Integrates with official APIs (API Setu) and government portals through compliant methods
+5. **Empowers Rural Users**: Enables citizens without digital expertise to access benefits independently
 
 ## Functional Requirements
 
@@ -122,12 +123,14 @@ The Claim Engine provides an end-to-end empowerment solution that:
 - PDF generation service for pre-filled forms
 
 ## Success Metrics
+- Scheme discovery time: Days → Minutes
+- Application success rate: % of submitted claims approved
 - User adoption rate among rural population
-- Claim success rate (% of submitted claims approved)
-- Average time to claim submission
-- User satisfaction score
+- Voice access in native languages: Coverage across Indian languages
+- Higher application success compared to manual submission
 - Cost per successful claim
-- Language coverage and accuracy
+- User satisfaction score
+- Accessibility for users without digital literacy
 
 ## Constraints & Assumptions
 - **Legal Constraint**: No automated form submission on government portals without explicit API support or legal authorization
@@ -140,7 +143,8 @@ The Claim Engine provides an end-to-end empowerment solution that:
 - User consent required for all data sharing with government systems
 
 ## Timeline & Milestones
-- Phase 1: Core voice interface and eligibility matching (MVP)
-- Phase 2: Portal automation and API integration
-- Phase 3: Multi-language expansion and optimization
-- Phase 4: Scale and government partnership integration
+- **Hackathon MVP**: Support 1-2 government schemes with live claim navigation
+- **Phase 1**: Core voice interface, eligibility matching, and API Setu integration
+- **Phase 2**: Multi-scheme support and portal automation with guided submission
+- **Phase 3**: Multi-language expansion and optimization
+- **Phase 4**: Scale and government partnership integration for nationwide deployment
