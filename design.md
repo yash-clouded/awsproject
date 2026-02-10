@@ -32,8 +32,6 @@ The Claim Engine follows a layered architecture with three core execution layers
 
 ## Three Core Execution Layers (Hackathon Focus)
 
-## Three Core Execution Layers (Hackathon Focus)
-
 ### 1. Speech & Language Layer (Human-to-Machine Translation)
 
 **Purpose**: Enable voice-first interaction in native languages
@@ -49,6 +47,7 @@ The Claim Engine follows a layered architecture with three core execution layers
 - Natural speech synthesis with SSML support for tone/pitch/accent control
 - Support for Indian languages (Hindi, Tamil, Telugu, Kannada, Marathi, etc.)
 - Fallback to text interface for low-bandwidth scenarios
+- **Converts citizen speech ↔ AI responses in native languages**: Seamless bidirectional communication
 
 **Flow:**
 ```
@@ -80,6 +79,8 @@ User Audio Response
 - Handle "fuzzy" logic for nuanced eligibility decisions
 - Provide explanations for eligibility results
 - Maintain conversation context across sessions
+- **Amazon Bedrock evaluates user eligibility**: Matches citizens with correct government schemes
+- **Provides explanation and next steps**: Clear reasoning for eligibility decisions
 
 **Example Logic:**
 ```
@@ -111,6 +112,7 @@ Return Recommendations with Explanations
 - API Setu: Direct government API integration
 - Amazon Textract: Document OCR and processing
 - Amazon SES/SNS: Notifications and confirmations
+- PDF Generation Service: Pre-filled form generation
 
 **Capabilities:**
 - Read-only form structure analysis (no submission, compliant)
@@ -121,6 +123,9 @@ Return Recommendations with Explanations
 - API integration with government systems
 - Secure claim submission and status tracking
 - OTP handling and user verification
+- **AWS Lambda automates form filling & portal navigation**: Backend automatically extracts documents, fills online forms, and handles claim processing using serverless functions
+- **Secure claim submission and status tracking**: Claims submitted securely with real-time status updates
+- **OTP Verification**: Secure OTP confirmation before final submission
 
 **Flow:**
 ```
@@ -158,8 +163,9 @@ Step 6: Confirmation & Tracking
     ├─ Store claim record in DynamoDB
     └─ Send confirmation to user
 ```
+```
 
-### 5. Data & Integration Layer
+### 4. Data & Integration Layer
 
 **Databases:**
 - **DynamoDB**: User profiles, claim history, session state
@@ -491,23 +497,24 @@ Response:
 
 ## Hackathon MVP Scope
 
-For the hackathon demo, the system will support **1-2 government schemes** with live claim navigation:
+For the hackathon demo, the system will support the **Beti Bachao Beti Padhao (BBBP) scheme** with live claim navigation:
 
 **MVP Features:**
 - Voice-based user profile collection in 2-3 Indian languages
 - Eligibility assessment using Bedrock LLM
 - Scheme discovery and ranking
-- Form structure analysis for selected scheme
+- Form structure analysis for BBBP scheme
 - Pre-filled PDF generation with user data
 - Copy-paste assistance guide
 - Live portal navigation demonstration
 - Claim confirmation and tracking
+- OTP verification workflow
 
 **Out of Scope for MVP:**
 - Full multi-language support (focus on 2-3 languages)
 - Automated API Setu integration (manual API calls demonstrated)
 - Production-grade security (demo-level encryption)
-- Nationwide scheme database (focus on 1-2 schemes)
+- Multi-scheme support (focus on BBBP scheme)
 
 ## Cost & Scalability
 
@@ -524,3 +531,29 @@ For the hackathon demo, the system will support **1-2 government schemes** with 
 - Designed for low ongoing costs
 - Sustainable solution for wide-scale rural inclusion
 - Government-friendly pricing model
+
+## AI Claim Assistant - User Journey
+
+**Key Features:**
+- **Voice-first interaction in local languages**: Users interact entirely through voice in their native language
+- **Instant scheme eligibility detection**: System immediately identifies applicable schemes based on user profile
+- **Personalized scheme recommendations**: Top schemes ranked by relevance and benefit amount
+- **One-tap application guidance**: Simple, step-by-step instructions for claim submission
+- **Automatic form filling from documents**: Backend extracts data from uploaded documents and pre-fills forms
+- **Secure OTP verification before submission**: User confirms details before final submission
+- **Real-time application status tracking**: Users receive live updates on claim progress
+- **Simple interface designed for rural users**: Minimal text, maximum voice, intuitive navigation
+
+**User Journey Flow:**
+1. User calls or opens app
+2. System greets in detected language
+3. User describes profile (e.g., "I am a farmer with 2 acres")
+4. System identifies eligible schemes instantly
+5. User selects scheme of interest
+6. System provides detailed guidance
+7. User uploads documents (Aadhaar, Ration Card)
+8. System extracts data and pre-fills forms
+9. User reviews and confirms details
+10. OTP verification sent
+11. Claim submitted securely
+12. Real-time status tracking begins

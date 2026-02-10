@@ -12,7 +12,14 @@ Millions of eligible citizens miss government benefits due to:
 - High dropout rates during the application process
 
 ## Solution Overview
-The Claim Engine provides an end-to-end empowerment solution that:
+
+**How It Solves the Problem:**
+Most rural users drop out because the actual application portals (like DBT or State portals) are too complex. Our solution doesn't just "find" the scheme; it navigates and pre-fills the application, eliminating the complexity barrier.
+
+**Unique Value Proposition (USP):**
+"End-to-End Empowerment" — We are the first bridge that identifies eligibility AND automates the "Claim Path" by deep-linking or automating form-filling on specific government portals.
+
+**The Claim Engine provides:**
 1. **Scheme Discovery**: Reduces discovery time from days to minutes through voice-based eligibility assessment
 2. **Intelligent Matching**: Identifies applicable government schemes based on user profile
 3. **Guided Claim Path**: Guides users through the entire claim submission process with pre-filled data and step-by-step instructions
@@ -26,12 +33,15 @@ The Claim Engine provides an end-to-end empowerment solution that:
 - **Automatic Language Detection**: Identify user's language automatically
 - **Speech-to-Text Conversion**: Use Amazon Transcribe for real-time audio processing
 - **Text-to-Speech Output**: Use AWS Polly to provide responses in user's native language with natural tone and accent control
+- **Converts citizen speech ↔ AI responses in native languages**: Seamless bidirectional communication
 
 ### 2. User Profile & Eligibility Assessment
 - **Voice-Based Profile Collection**: Users describe their profile (e.g., "I am a farmer with 2 acres of land")
 - **Data Extraction**: Extract structured data (occupation, land size, income, family details) from conversational input
 - **Document Support**: Accept uploaded documents (Aadhaar, Ration Card) for data extraction using Amazon Textract
 - **Eligibility Matching**: Match user profile against government scheme database to identify applicable benefits
+- **Amazon Bedrock evaluates user eligibility**: Uses LLM to match citizens with correct government schemes
+- **Provides explanation and next steps**: Clear reasoning for eligibility decisions
 
 ### 3. Scheme Discovery & Matching
 - **Comprehensive Scheme Database**: Maintain database of government schemes, subsidies, and benefits
@@ -49,6 +59,9 @@ The Claim Engine provides an end-to-end empowerment solution that:
 - **Copy-Paste Assistance**: Provide field-by-field guidance with copy-paste ready values for manual entry
 - **Portal Integration (Official)**: Work with government APIs (API Setu) for direct submission where available
 - **User-Controlled Submission**: User retains full control—system guides but never submits without explicit user action
+- **Automatic form filling from documents**: Backend automatically extracts documents, fills online forms, and handles claim processing using serverless functions
+- **OTP Verification**: Secure OTP confirmation before final submission
+- **Secure claim submission and status tracking**: Claims submitted securely with real-time status updates
 
 ### 5. Document & Data Integration
 - **API Setu Integration**: Connect to API Setu (Digital India) to fetch verified user documents automatically
@@ -143,7 +156,7 @@ The Claim Engine provides an end-to-end empowerment solution that:
 - User consent required for all data sharing with government systems
 
 ## Timeline & Milestones
-- **Hackathon MVP**: Support 1-2 government schemes with live claim navigation
+- **Hackathon MVP**: Support Beti Bachao Beti Padhao (BBBP) scheme with live claim navigation
 - **Phase 1**: Core voice interface, eligibility matching, and API Setu integration
 - **Phase 2**: Multi-scheme support and portal automation with guided submission
 - **Phase 3**: Multi-language expansion and optimization
